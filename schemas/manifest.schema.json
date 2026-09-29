@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Montekkundan/bigbrain-scout/blob/main/schemas/manifest.schema.json",
+  "title": "BigBrain Scout synthetic offline capsule manifest v1",
+  "description": "Prototype schema for NONBIOLOGICAL fixtures only. CLI checks its required contract and checksums, not the entire JSON Schema vocabulary.",
+  "type": "object",
+  "required": ["schema_version", "fixture_type", "source", "request", "returned", "provenance", "artifacts"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "fixture_type": {"const": "synthetic"},
+    "source": {
+      "type": "object", "required": ["id", "url", "license", "citation", "coordinate_space", "units"],
+      "properties": {"id": {"type": "string", "minLength": 1}, "url": {"type": "string", "minLength": 1}, "license": {"type": "string", "minLength": 1}, "citation": {"type": "string", "minLength": 1}, "coordinate_space": {"type": "string", "minLength": 1}, "units": {"const": "mm"}}
+    },
+    "request": {
+      "type": "object", "required": ["bbox_mm", "resolution_key", "resolution_mm", "max_decoded_bytes", "max_estimated_working_bytes"],
+      "properties": {"bbox_mm": {"$ref": "#/$defs/bbox"}, "resolution_key": {"type": "string"}, "resolution_mm": {"$ref": "#/$defs/positiveVector"}, "max_decoded_bytes": {"type": "integer", "minimum": 1}, "max_estimated_working_bytes": {"type": "integer", "minimum": 1}}
+    },
+    "returned": {
+      "type": "object", "required": ["shape", "affine", "dtype", "resolution_mm", "bbox_mm", "clipped_bbox_mm", "indices", "storage_order"],
+      "properties": {
+        "shape": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer", "minimum": 1}},
+        "affine": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "array", "minItems": 4, "maxItems": 4, "items": {"type": "number"}}},
+        "dtype": {"const": "uint8"}, "resolution_mm": {"$ref": "#/$defs/positiveVector"}, "bbox_mm": {"$ref": "#/$defs/bbox"}, "clipped_bbox_mm": {"$ref": "#/$defs/bbox"},
+        "indices": {"type": "object", "required": ["start", "stop"], "properties": {"start": {"$ref": "#/$defs/indexVector"}, "stop": {"$ref": "#/$defs/indexVector"}}}, "storage_order": {"const": "x fastest, then y, then z"}
+      }
+    },
+    "provenance": {
+      "type": "object", "required": ["generator", "version", "offline_only", "warning", "environment", "estimates"],
+      "properties": {"generator": {"const": "bigbrain-scout"}, "version": {"type": "string"}, "offline_only": {"const": true}, "warning": {"type": "string"}, "environment": {"type": "object", "required": ["python", "platform"], "properties": {"python": {"type": "string"}, "platform": {"type": "string"}}}, "estimates": {"type": "object", "required": ["decoded_roi_bytes", "chunk_mosaic_bytes", "one_chunk_bytes", "estimated_working_bytes", "model", "network_bytes", "peak_memory_guarantee"]}}
+    },
+    "artifacts": {"type": "object", "required": ["data", "preview", "fixture", "reproduce"], "additionalProperties": {"$ref": "#/$defs/artifact"}}
+  },
+  "$defs": {
+    "vector": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number"}},
+    "positiveVector": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "number", "exclusiveMinimum": 0}},
+    "indexVector": {"type": "array", "minItems": 3, "maxItems": 3, "items": {"type": "integer", "minimum": 0}},
+    "bbox": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"$ref": "#/$defs/vector"}},
+    "artifact": {"type": "object", "required": ["path", "bytes", "sha256"], "properties": {"path": {"type": "string", "minLength": 1, "pattern": "^(?!/)(?!.*\\.\\.)(?!.*\\\\).+$"}, "bytes": {"type": "integer", "minimum": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}
+  }
+}

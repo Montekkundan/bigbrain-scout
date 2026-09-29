@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Scout — illustrative report</title>
+<style>body{font:18px/1.5 system-ui;background:#eef3f6;color:#152c39;max-width:1000px;margin:60px auto;padding:24px}small{color:#556c79}h1{font-size:48px;line-height:1.1}section{background:white;padding:28px;border-radius:18px;margin:20px 0}table{border-collapse:collapse;width:100%}th,td{text-align:left;padding:12px;border-bottom:1px solid #d9e2e8}.tag{display:inline-block;background:#dcefe9;padding:5px 12px;border-radius:30px}.warn{background:#fff1d9}.flow{font-size:28px}code{font-size:16px}</style>
+<small>BIGBRAIN SCOUT / DESIGN MOCK-UP / NOT A LIVE RESULT</small>
+<h1>Inspect before you fetch.<br>Record what you received.</h1>
+<section class="flow">Bounded request → Preflight → Provenance capsule</section>
+<section><span class="tag">Illustrative 4 µm in-plane request</span><h2>Requested versus returned</h2><table><tr><th>Field</th><th>Request</th><th>Returned</th></tr><tr><td>Source</td><td>Section #3905</td><td>Record actual source ID</td></tr><tr><td>Voxel sizes</td><td>4 µm in-plane</td><td>Read NIfTI header; keep anisotropic thickness</td></tr><tr><td>Shape / affine</td><td>Metadata estimate</td><td>Record actual image, not assumed axis order</td></tr><tr><td>Size</td><td>ROI + chunk estimate</td><td>Record actual array bytes separately</td></tr></table></section>
+<section class="warn"><h2>Make uncertainty visible</h2>Decoded-byte estimates are not network costs or guaranteed peak RAM. Bounds checks are not anatomical validation. A checksum check is not an independent re-download.</section>
+<section><h2>Capsule</h2><code>data + preview + manifest + checksum + environment + reproduction instructions</code><p>Hackathon work: preview · tests · source/domain review · documentation</p></section>
+</html>
