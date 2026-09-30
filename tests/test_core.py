@@ -129,6 +129,61 @@ class PlannerTests(unittest.TestCase):
         self.assertIn("Decoded ROI estimate 6 exceeds", result.stderr)
         self.assertEqual(result.stdout, "")
 
+    def test_boundary_clipping_and_snapping_preserve_nonbiological_contract(self):
+        """Requested ROI extending beyond lower and upper source bounds is clipped to
+        source metadata bounds and snapped outward to integral voxel boundaries."""
+        self.request["roi_mm"] = [[-0.004, 0.0011, -0.001], [0.0051, 0.012, 0.005]]
+        result = plan(self.request)
+        self.assertTrue(result["clipped"])
+        self.assertEqual(result["requested_bbox_mm"], [[-0.004, 0.0011, -0.001], [0.0051, 0.012, 0.005]])
+        self.assertEqual(result["clipped_bbox_mm"], [[0, 0.0011, 0], [0.0051, 0.008, 0.002]])
+        # Snaps outward from [0, 0.0011, 0]..[0.0051, 0.008, 0.002] at 0.002 mm grid to [0..3, 0..4, 0..1]
+        self.assertEqual(result["indices"], {"start": [0, 0, 0], "stop": [3, 4, 1]})
+        self.assertEqual(result["shape"], [3, 4, 1])
+        self.assertEqual(result["returned_bbox_mm"], [[0.0, 0.0, 0.0], [0.006, 0.008, 0.002]])
+        self.assertNotEqual(result["requested_bbox_mm"], result["returned_bbox_mm"])
+        self.assertNotEqual(result["clipped_bbox_mm"], result["returned_bbox_mm"])
+
+    def test_multiple_scales_never_silently_fallback_to_coarser_or_finer(self):
+        """Even when coarser and finer scales exist in source metadata, requesting an
+        unlisted intermediate or anisotropic scale is rejected rather than silently falling back."""
+        self.request["source"]["scales"] = [
+            {"key": "synthetic-2um", "resolution_mm": [0.002, 0.002, 0.002], "dtype": "uint8", "chunk_shape": [2, 2, 1]},
+            {"key": "synthetic-4um", "resolution_mm": [0.004, 0.004, 0.002], "dtype": "uint8", "chunk_shape": [2, 2, 1]},
+        ]
+        for unavailable_key in ("synthetic-1um", "synthetic-8um", "4,1,4", ""):
+            with self.subTest(scale=unavailable_key):
+                self.request["scale"] = unavailable_key
+                with self.assertRaisesRegex(ScoutError, "no automatic fallback"):
+                    plan(self.request)
+
+    def test_straddling_chunk_boundary_inflates_mosaic_and_enforces_working_budget(self):
+        """A tiny 2x2x1 ROI that straddles chunk boundaries touches 2x2x1=4 chunks
+        instead of 1 chunk, and is rejected if the chunk-assembly working budget is exceeded."""
+        # Aligned ROI [0, 0, 0]..[0.004, 0.004, 0.002] -> indices 0..2, 0..2, 0..1 -> touches 1 chunk (2x2x1=4 bytes)
+        aligned = copy.deepcopy(self.request)
+        aligned["roi_mm"] = [[0.0, 0.0, 0.0], [0.004, 0.004, 0.002]]
+        aligned_plan = plan(aligned)
+        self.assertEqual(aligned_plan["shape"], [2, 2, 1])
+        self.assertEqual(aligned_plan["estimates"]["decoded_roi_bytes"], 4)
+        self.assertEqual(aligned_plan["estimates"]["chunk_mosaic_bytes"], 4)
+        self.assertEqual(aligned_plan["estimates"]["estimated_working_bytes"], 12)
+
+        # Shifted by 1 voxel [0.002, 0.002, 0]..[0.006, 0.006, 0.002] -> indices 1..3, 1..3, 0..1 -> touches 2x2x1=4 chunks (16 bytes)
+        straddling = copy.deepcopy(self.request)
+        straddling["roi_mm"] = [[0.002, 0.002, 0.0], [0.006, 0.006, 0.002]]
+        straddling["max_decoded_bytes"] = 4
+        straddling["max_estimated_working_bytes"] = 12
+        with self.assertRaisesRegex(ScoutError, "Chunk assembly estimate 24 exceeds"):
+            plan(straddling)
+
+        straddling["max_estimated_working_bytes"] = 24
+        straddling_plan = plan(straddling)
+        self.assertEqual(straddling_plan["shape"], [2, 2, 1])
+        self.assertEqual(straddling_plan["estimates"]["decoded_roi_bytes"], 4)
+        self.assertEqual(straddling_plan["estimates"]["chunk_mosaic_bytes"], 16)
+        self.assertEqual(straddling_plan["estimates"]["estimated_working_bytes"], 24)
+
 
 class CapsuleTests(unittest.TestCase):
     def setUp(self):
@@ -232,6 +287,33 @@ class CapsuleTests(unittest.TestCase):
         self.assertTrue(set(schema["required"]).issubset(self.manifest))
         for field in ("source", "request", "returned", "provenance"):
             self.assertTrue(set(schema["properties"][field]["required"]).issubset(self.manifest[field]))
+
+    def test_clipped_and_snapped_capsule_records_requested_vs_returned_mismatch(self):
+        """A capsule built from a clipped, subvoxel-misaligned request records distinct
+        requested, clipped, and returned bounding boxes while keeping synthetic data nonbiological."""
+        request = load_json(REQUEST)
+        request["roi_mm"] = [[-0.002, 0.0005, 0.0], [0.0035, 0.0055, 0.002]]
+        req_path = self.root / "clipped-request.json"
+        req_path.write_text(json.dumps(request))
+        clipped_out = self.root / "clipped-capsule"
+        manifest = create_demo(req_path, FIXTURE, clipped_out)
+        verified = verify_capsule(clipped_out)
+        self.assertEqual(verified["fixture_type"], "synthetic")
+        self.assertIn("NONBIOLOGICAL", verified["provenance"]["warning"])
+        self.assertEqual(verified["request"]["bbox_mm"], [[-0.002, 0.0005, 0.0], [0.0035, 0.0055, 0.002]])
+        self.assertEqual(verified["returned"]["clipped_bbox_mm"], [[0.0, 0.0005, 0.0], [0.0035, 0.0055, 0.002]])
+        self.assertEqual(verified["returned"]["bbox_mm"], [[0.0, 0.0, 0.0], [0.004, 0.006, 0.002]])
+        self.assertEqual(verified["returned"]["shape"], [2, 3, 1])
+        self.assertNotEqual(verified["request"]["bbox_mm"], verified["returned"]["bbox_mm"])
+        self.assertNotEqual(verified["returned"]["clipped_bbox_mm"], verified["returned"]["bbox_mm"])
+        self.assertEqual(manifest, verified)
+
+    def test_returned_resolution_mismatch_with_request_refused(self):
+        """Capsules whose returned resolution diverges from the requested resolution are rejected."""
+        self.manifest["returned"]["resolution_mm"] = [0.004, 0.004, 0.002]
+        self.update_manifest()
+        with self.assertRaisesRegex(ScoutError, "exact contract"):
+            verify_capsule(self.output)
 
 
 if __name__ == "__main__":
