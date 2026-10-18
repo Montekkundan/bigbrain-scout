@@ -14,7 +14,41 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: python -m unittest discover -s tests -v
+      - run: python -m compileall -q bigbrain_scout
+      - run: node --check bigbrain_scout/web/app.js
       - run: python -m bigbrain_scout plan --request examples/safe-request.json
+      - run: python -m bigbrain_scout plan --example safe
       - run: python -m bigbrain_scout demo --output artifacts/demo
       - run: python -m bigbrain_scout verify --capsule artifacts/demo
       - run: python artifacts/demo/reproduce.py --output artifacts/reproduced-demo.raw
+      - run: python -m bigbrain_scout reproduce --capsule artifacts/demo --output artifacts/replayed-demo
+      - run: python -m bigbrain_scout compare --first artifacts/demo --second artifacts/replayed-demo
+      - run: python -m bigbrain_scout check --output artifacts/teammate-offline
+      - run: python -m pip wheel --no-deps . --wheel-dir dist
+      - run: python -m venv --without-pip artifacts/wheel-env
+      - run: python -m pip --python artifacts/wheel-env/bin/python install --no-deps dist/bigbrain_scout-0.1.0-py3-none-any.whl
+      - run: python scripts/smoke_installed.py --python artifacts/wheel-env/bin/python
+  audit-contract:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - run: python -m pip install -e '.[audit]'
+      # Numerical fixtures and mocked source contracts only; no real image fetch.
+      - run: python -m unittest discover -s tests -v
+  live-contract:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install -e '.[live]'
+      # This job tests mocked provider contracts, never a real remote fetch.
+      - run: python -m unittest discover -s tests -v

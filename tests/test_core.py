@@ -233,6 +233,13 @@ class CapsuleTests(unittest.TestCase):
         for field in ("source", "request", "returned", "provenance"):
             self.assertTrue(set(schema["properties"][field]["required"]).issubset(self.manifest[field]))
 
+    def test_cli_refuses_non_object_manifest_cleanly(self):
+        (self.output / "manifest.json").write_text("[]")
+        result = subprocess.run([sys.executable, "-m", "bigbrain_scout", "verify", "--capsule", str(self.output.resolve())], cwd=ROOT, capture_output=True, text=True)
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("Scout refused: Capsule JSON must be an object", result.stderr)
+        self.assertNotIn("Traceback", result.stderr)
+
 
 if __name__ == "__main__":
     unittest.main()

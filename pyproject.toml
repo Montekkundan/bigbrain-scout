@@ -13,7 +13,14 @@ authors = [{name = "Montek Kundan"}]
 dependencies = []
 
 [project.optional-dependencies]
-live = ["siibra==1.0.1a22", "nibabel>=5,<6"]
+audit = ["numpy==2.4.6", "scipy==1.17.1", "nibabel==5.4.2"]
+live = ["siibra==1.0.1a22", "numpy==2.4.6", "scipy==1.17.1", "nibabel==5.4.2"]
+
+[project.scripts]
+bigbrain-scout = "bigbrain_scout.__main__:main"
+
+[tool.setuptools.package-data]
+bigbrain_scout = ["web/*.html", "web/*.css", "web/*.js", "data/*.json"]
 
 [tool.setuptools.packages.find]
 include = ["bigbrain_scout*"]

@@ -1,0 +1,36 @@
+{
+  "id": "section-3905-fixed-dark-components-v1-2026-10-18",
+  "description": "Aggregate regression signatures recomputed from the local verified October 13 capsule on October 18. Not independent biological ground truth. No image data are bundled.",
+  "source": {
+    "id": "section-3905",
+    "width": 400,
+    "height": 400,
+    "source_shape": [401, 1, 401],
+    "source_affine_mm": [
+      [0.0010000000474974513, 0.0, 0.0, 7.599999904632568],
+      [0.0, 0.019999999552965164, 0.0, 8.070500373840332],
+      [0.0, 0.0, 0.0010000000474974513, 7.599999904632568],
+      [0.0, 0.0, 0.0, 1.0]
+    ],
+    "request_bbox_mm": [[7.6, 8, 7.6], [8, 10, 8]],
+    "crop_sha256": "4d1125f4687b2bc30df94d5c93587a20df39eddfec21eadc5b8f7861abe7fc2c",
+    "decoded_sha256": "bb261af1189f86b6de62d2569680537d7ebebde8a1857c1495f90a6f1bd6a7ed"
+  },
+  "settings": {
+    "dark_threshold_uint8": 90.0,
+    "max_area_um2": 600.0,
+    "min_area_um2": 16.0,
+    "smoothing_sigma_um": 1.5
+  },
+  "environment": {"nibabel": "5.4.2", "numpy": "2.4.6", "scipy": "1.17.1"},
+  "levels": [
+    {"resolution_um": 1, "candidate_count": 69},
+    {"resolution_um": 2, "candidate_count": 73},
+    {"resolution_um": 4, "candidate_count": 106}
+  ],
+  "mask_sha256": {
+    "mask_1um": "6504f717874d4243cd378452dd2aa70ed7e8076317db32320ee294396761f15e",
+    "mask_2um": "f550e33ed6ae7a43406e8d542e87a9ebdda2fae63c1284253065d35a78fd6690",
+    "mask_4um": "18538672f63827e7f9529751a979b7f827d1e26b0801ff285da9750da4638c11"
+  }
+}

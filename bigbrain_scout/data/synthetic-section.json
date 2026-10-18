@@ -1,0 +1,18 @@
+{
+  "fixture_type": "synthetic",
+  "warning": "NONBIOLOGICAL uint8 ramp; not BigBrain imagery or a scientific result",
+  "source": {
+    "id": "scout-nonbiological-section-v1",
+    "fixture_type": "synthetic",
+    "coordinate_space": "synthetic Cartesian grid (not an anatomical reference space)",
+    "units": "mm",
+    "url": "https://github.com/Montekkundan/bigbrain-scout/blob/main/fixtures/synthetic-section.json",
+    "license": "CC0-1.0 (synthetic fixture only; not a BigBrain dataset license)",
+    "citation": "BigBrain Scout NONBIOLOGICAL test fixture, version 1; no scientific anatomy",
+    "bbox_mm": [[0, 0, 0], [0.008, 0.008, 0.002]],
+    "scales": [{"key": "synthetic-2um", "resolution_mm": [0.002, 0.002, 0.002], "dtype": "uint8", "chunk_shape": [2, 2, 1]}]
+  },
+  "shape": [4, 4, 1],
+  "storage_order": "x fastest, then y, then z",
+  "values": [0, 17, 34, 51, 68, 85, 102, 119, 136, 153, 170, 187, 204, 221, 238, 255]
+}

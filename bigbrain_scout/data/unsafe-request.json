@@ -1,0 +1,17 @@
+{
+  "source": {
+    "id": "scout-nonbiological-section-v1",
+    "fixture_type": "synthetic",
+    "coordinate_space": "synthetic Cartesian grid (not an anatomical reference space)",
+    "units": "mm",
+    "url": "https://github.com/Montekkundan/bigbrain-scout/blob/main/fixtures/synthetic-section.json",
+    "license": "CC0-1.0 (synthetic fixture only; not a BigBrain dataset license)",
+    "citation": "BigBrain Scout NONBIOLOGICAL test fixture, version 1; no scientific anatomy",
+    "bbox_mm": [[0, 0, 0], [0.008, 0.008, 0.002]],
+    "scales": [{"key": "synthetic-2um", "resolution_mm": [0.002, 0.002, 0.002], "dtype": "uint8", "chunk_shape": [2, 2, 1]}]
+  },
+  "roi_mm": [[0.002, 0, 0], [0.006, 0.006, 0.002]],
+  "scale": "synthetic-2um",
+  "max_decoded_bytes": 1,
+  "max_estimated_working_bytes": 128
+}

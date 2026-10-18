@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BigBrain Scout | Local workspace</title>
+  <link rel="stylesheet" href="/style.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="BigBrain Scout home"><svg viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="9"/><path d="M14 1v7M14 20v7M1 14h7M20 14h7"/><circle cx="14" cy="14" r="2"/></svg>BigBrain Scout</a>
+    <span class="local"><span aria-hidden="true">◷</span> Local workspace</span>
+  </header>
+  <main>
+    <div class="intro">
+      <h1>Small regions. Clear provenance.</h1>
+      <p>Check a request before collecting data. Keep the result with its context.</p>
+    </div>
+    <div class="workspace">
+      <section class="panel request-panel" aria-labelledby="request-title">
+        <h2 id="request-title">Request</h2>
+        <form id="request-form">
+          <fieldset id="fields" disabled>
+            <label for="source">Source</label>
+            <select id="source" name="source"><option>Loading sources…</option></select>
+            <p id="source-note" class="help">Connecting to your local workspace.</p>
+            <div class="roi">
+              <h3>Region of interest</h3>
+              <p class="help">Bounds in millimetres</p>
+              <div class="coordinates">
+                <span></span><span>X</span><span>Y</span><span>Z</span>
+                <span class="row-label">Lower</span>
+                <input id="lo-x" aria-label="Lower X in millimetres" type="number" step="any" required>
+                <input id="lo-y" aria-label="Lower Y in millimetres" type="number" step="any" required>
+                <input id="lo-z" aria-label="Lower Z in millimetres" type="number" step="any" required>
+                <span class="row-label">Upper</span>
+                <input id="hi-x" aria-label="Upper X in millimetres" type="number" step="any" required>
+                <input id="hi-y" aria-label="Upper Y in millimetres" type="number" step="any" required>
+                <input id="hi-z" aria-label="Upper Z in millimetres" type="number" step="any" required>
+              </div>
+            </div>
+            <label for="scale">Resolution</label>
+            <select id="scale" name="scale"></select>
+            <p class="help scale-help">Exact scale only. No automatic fallback.</p>
+            <div class="budget-row"><label for="decoded">Decoded budget <small>bytes</small></label><input id="decoded" type="number" min="1" max="8388608" step="1" required></div>
+            <div class="budget-row"><label for="working">Working estimate budget <small>bytes</small></label><input id="working" type="number" min="1" max="8388608" step="1" required></div>
+            <p class="help budget-help">Maximum 8 MiB each.</p>
+            <button class="primary" id="check" type="submit">Check request</button>
+            <button class="secondary" id="build" type="button" disabled>Build capsule</button>
+          </fieldset>
+        </form>
+        <p class="safety"><span aria-hidden="true">ⓘ</span> Estimates are not a peak-memory guarantee.</p>
+      </section>
+      <div class="results">
+        <section class="panel preflight" aria-labelledby="preflight-title">
+          <div class="section-heading"><h2 id="preflight-title">Preflight</h2><span id="status" class="status">Not checked</span></div>
+          <div id="message" role="status" aria-live="polite">Choose a source, then check your request. No image bytes have been collected.</div>
+          <div class="metrics">
+            <div><strong id="decoded-result">Not checked</strong><span>Decoded ROI</span></div>
+            <div><strong id="working-result">Not checked</strong><span>Working estimate</span></div>
+            <div><strong id="shape-result">Not checked</strong><span>Voxel shape</span></div>
+          </div>
+          <div class="detail-grid">
+            <div class="preview-area">
+              <h3>Preview</h3>
+              <div id="preview-placeholder" class="preview-placeholder">Build a capsule to see actual bytes.</div>
+              <canvas id="preview" hidden aria-label="Collected section grayscale preview" role="img"></canvas>
+              <p id="preview-note" class="help">No preview before collection.</p>
+            </div>
+            <div class="comparison">
+              <h3>Requested / returned</h3>
+              <div class="table-scroll"><table aria-label="Requested and returned region geometry">
+                <thead><tr><th>Bounds (mm)</th><th>X</th><th>Y</th><th>Z</th></tr></thead>
+                <tbody id="bounds"><tr><td colspan="4">Check a request to inspect geometry.</td></tr></tbody>
+              </table></div>
+              <dl><div><dt>Resolution (mm)</dt><dd id="resolution-result">Not checked</dd></div><div><dt>Shape (voxels)</dt><dd id="actual-shape">Not collected</dd></div></dl>
+              <p id="geometry-note" class="help">Bounds checks are not anatomical validation.</p>
+            </div>
+          </div>
+          <details id="plan-details" hidden><summary>Inspect preflight metadata</summary><pre id="plan-json"></pre></details>
+        </section>
+        <section class="panel capsule" aria-labelledby="capsule-title">
+          <div class="capsule-top"><div><h2 id="capsule-title">Reproducibility capsule</h2><p>Data, preview, metadata and reproduction instructions.</p></div><div class="capsule-actions"><button id="verify" class="secondary" disabled>Verify capsule</button><a id="download" class="secondary disabled" aria-disabled="true" tabindex="-1">Download ZIP</a></div></div>
+          <p id="verification" role="status" aria-live="polite">No capsule yet. Nothing is uploaded or shared.</p>
+          <details id="manifest-details" hidden><summary>Inspect manifest and checksums</summary><pre id="manifest-json"></pre></details>
+        </section>
+      </div>
+    </div>
+  </main>
+  <footer>Pre-hackathon v1 <span>•</span> Bounded section presets <span>•</span> Data stays local</footer>
+  <noscript>This workspace needs JavaScript. The offline CLI remains available.</noscript>
+</body>
+</html>
