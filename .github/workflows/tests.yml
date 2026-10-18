@@ -30,6 +30,7 @@ jobs:
       - run: python scripts/smoke_installed.py --python artifacts/wheel-env/bin/python
   audit-contract:
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
         python-version: ['3.11', '3.12']

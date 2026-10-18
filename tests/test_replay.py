@@ -360,9 +360,14 @@ class DecodedNiftiTests(unittest.TestCase):
         shutil.copytree(self.original, self.second)
 
     def test_nifti_header_difference_is_not_image_byte_mismatch(self):
-        image = nib.load(self.second / "section-3905.nii")
+        loaded = nib.load(self.second / "section-3905.nii")
+        # Detach the fixture before overwriting its backing file. A lazy memmap
+        # can SIGBUS on Linux when nib.save truncates that same file.
+        data = np.asanyarray(loaded.dataobj).copy()
+        image = nib.Nifti1Image(data, loaded.affine, loaded.header.copy())
         image.header["cal_max"] = 123
         nib.save(image, self.second / "section-3905.nii")
+        np.testing.assert_array_equal(np.asanyarray(nib.load(self.second / "section-3905.nii").dataobj), data)
         manifest = deepcopy(self.manifest)
         self.fixture.refresh_artifact(self.second, manifest, "data")
         comparison = replay.compare_capsules(self.original, self.second)
